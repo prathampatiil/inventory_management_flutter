@@ -6,9 +6,10 @@ import '../../controllers/auth_controller.dart';
 class RegisterView extends StatelessWidget {
   RegisterView({super.key});
 
+  // Controller (already put permanently in main / binding)
   final AuthController controller = Get.find<AuthController>();
 
-  // Password visibility state (UI-only)
+  // UI-only state
   final RxBool _obscurePassword = true.obs;
 
   @override
@@ -23,11 +24,7 @@ class RegisterView extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF6A1B9A), // Deep Purple
-              Color(0xFF8E24AA), // Medium Purple
-              Color(0xFFCE93D8), // Light Purple
-            ],
+            colors: [Color(0xFF6A1B9A), Color(0xFF8E24AA), Color(0xFFCE93D8)],
           ),
         ),
         child: Center(
@@ -71,6 +68,8 @@ class RegisterView extends StatelessWidget {
 
                     // ================= USERNAME =================
                     TextField(
+                      keyboardType: TextInputType.text,
+                      textInputAction: TextInputAction.next,
                       decoration: InputDecoration(
                         labelText: 'Username',
                         prefixIcon: const Icon(Icons.person_outline),
@@ -78,7 +77,9 @@ class RegisterView extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      onChanged: (value) => controller.username.value = value,
+                      onChanged: (value) {
+                        controller.username.value = value.trim();
+                      },
                     ),
 
                     const SizedBox(height: 16),
@@ -87,6 +88,7 @@ class RegisterView extends StatelessWidget {
                     Obx(
                       () => TextField(
                         obscureText: _obscurePassword.value,
+                        textInputAction: TextInputAction.done,
                         decoration: InputDecoration(
                           labelText: 'Password',
                           prefixIcon: const Icon(Icons.lock_outline),
@@ -104,7 +106,10 @@ class RegisterView extends StatelessWidget {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        onChanged: (value) => controller.password.value = value,
+                        onChanged: (value) {
+                          controller.password.value = value.trim();
+                        },
+                        onSubmitted: (_) => controller.register(),
                       ),
                     ),
 
@@ -115,6 +120,8 @@ class RegisterView extends StatelessWidget {
                       height: 48,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
+                          backgroundColor: theme.colorScheme.primary,
+                          foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),

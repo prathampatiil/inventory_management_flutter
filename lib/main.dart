@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:inventory_management/middlewares/auth_middleware.dart';
 
+import 'bindings/initial_binding.dart';
 import 'routes/app_routes.dart';
 import 'services/storage_service.dart';
 
 // ================= AUTH =================
 import 'views/auth/login_view.dart';
 import 'views/auth/register_view.dart';
+
+// ================= DASHBOARD =================
+import 'views/dashboard/dashboard_view.dart';
+
 // ================= PRODUCTS =================
 import 'views/product/product_list_view.dart';
 import 'views/product/add_product_view.dart';
@@ -14,6 +20,7 @@ import 'views/product/edit_product_view.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await StorageService.init();
 
   final StorageService storageService = StorageService();
   final bool isLoggedIn = await storageService.isLoggedIn();
@@ -32,24 +39,54 @@ class InventoryApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Inventory Management',
 
+      // ✅ SINGLE PLACE WHERE CONTROLLERS ARE CREATED
+      initialBinding: InitialBinding(),
+
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
 
-      // ================= INITIAL ROUTE =================
+      // ✅ LOGIN CHECK
       initialRoute: isLoggedIn ? AppRoutes.home : AppRoutes.login,
 
       // ================= ROUTES =================
       getPages: [
         // ---------- AUTH ----------
-        GetPage(name: AppRoutes.login, page: () => LoginView()),
-        GetPage(name: AppRoutes.register, page: () => RegisterView()),
+        GetPage(
+          name: AppRoutes.login,
+          page: () => LoginView(),
+          middlewares: [AuthMiddleware()],
+        ),
+        GetPage(
+          name: AppRoutes.register,
+          page: () => RegisterView(),
+          middlewares: [AuthMiddleware()],
+        ),
+
+        // ---------- DASHBOARD ----------
+        GetPage(
+          name: AppRoutes.home,
+          page: () => DashboardView(),
+          middlewares: [AuthMiddleware()],
+        ),
 
         // ---------- PRODUCTS ----------
-        GetPage(name: AppRoutes.productList, page: () => ProductListView()),
-        GetPage(name: AppRoutes.addProduct, page: () => AddProductView()),
-        GetPage(name: AppRoutes.editProduct, page: () => EditProductView()),
+        GetPage(
+          name: AppRoutes.productList,
+          page: () => ProductListView(),
+          middlewares: [AuthMiddleware()],
+        ),
+        GetPage(
+          name: AppRoutes.addProduct,
+          page: () => AddProductView(),
+          middlewares: [AuthMiddleware()],
+        ),
+        GetPage(
+          name: AppRoutes.editProduct,
+          page: () => EditProductView(),
+          middlewares: [AuthMiddleware()],
+        ),
       ],
     );
   }

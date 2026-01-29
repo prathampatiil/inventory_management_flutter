@@ -13,7 +13,10 @@ class AuthController extends GetxController {
 
   // ================= REGISTER =================
   Future<void> register() async {
-    if (username.value.isEmpty || password.value.isEmpty) {
+    final String u = username.value.trim();
+    final String p = password.value.trim();
+
+    if (u.isEmpty || p.isEmpty) {
       Get.snackbar(
         'Error',
         'All fields are required',
@@ -22,25 +25,32 @@ class AuthController extends GetxController {
       return;
     }
 
-    final UserModel user = UserModel(
-      username: username.value,
-      password: password.value,
-    );
+    final UserModel user = UserModel(username: u, password: p);
 
+    // ✅ Save user ONLY
     await _storage.saveUser(user.toJson());
-    await _storage.setLogin(true);
 
-    // Clear fields after success
-    username.value = '';
-    password.value = '';
+    // ❌ DO NOT mark logged in
+    await _storage.setLogin(false);
 
-    // Navigate to dashboard
-    Get.offAllNamed(AppRoutes.home);
+    _clearFields();
+
+    // ✅ Redirect to LOGIN (real app behavior)
+    Get.offAllNamed(AppRoutes.login);
+
+    Get.snackbar(
+      'Success',
+      'Registration successful. Please login.',
+      snackPosition: SnackPosition.BOTTOM,
+    );
   }
 
   // ================= LOGIN =================
   Future<void> login() async {
-    if (username.value.isEmpty || password.value.isEmpty) {
+    final String u = username.value.trim();
+    final String p = password.value.trim();
+
+    if (u.isEmpty || p.isEmpty) {
       Get.snackbar(
         'Error',
         'Please enter username and password',
@@ -62,12 +72,11 @@ class AuthController extends GetxController {
 
     final UserModel user = UserModel.fromJson(savedUser);
 
-    if (user.username == username.value && user.password == password.value) {
+    if (user.username == u && user.password == p) {
+      // ✅ Login success
       await _storage.setLogin(true);
 
-      // Clear fields after success
-      username.value = '';
-      password.value = '';
+      _clearFields();
 
       Get.offAllNamed(AppRoutes.home);
     } else {
@@ -83,10 +92,14 @@ class AuthController extends GetxController {
   Future<void> logout() async {
     await _storage.setLogin(false);
 
-    // Clear state
-    username.value = '';
-    password.value = '';
+    _clearFields();
 
     Get.offAllNamed(AppRoutes.login);
+  }
+
+  // ================= HELPERS =================
+  void _clearFields() {
+    username.value = '';
+    password.value = '';
   }
 }

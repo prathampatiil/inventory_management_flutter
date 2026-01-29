@@ -7,9 +7,10 @@ import '../../routes/app_routes.dart';
 class LoginView extends StatelessWidget {
   LoginView({super.key});
 
-  final AuthController controller = Get.put(AuthController());
+  // ✅ DO NOT create controller here
+  final AuthController controller = Get.find<AuthController>();
 
-  // Password visibility state (UI-only)
+  // UI-only state
   final RxBool _obscurePassword = true.obs;
 
   @override
@@ -24,11 +25,7 @@ class LoginView extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF6A1B9A), // Deep Purple
-              Color(0xFF8E24AA), // Medium Purple
-              Color(0xFFCE93D8), // Light Purple
-            ],
+            colors: [Color(0xFF6A1B9A), Color(0xFF8E24AA), Color(0xFFCE93D8)],
           ),
         ),
         child: Center(
@@ -72,6 +69,7 @@ class LoginView extends StatelessWidget {
 
                     // ================= USERNAME =================
                     TextField(
+                      textInputAction: TextInputAction.next,
                       decoration: InputDecoration(
                         labelText: 'Username',
                         prefixIcon: const Icon(Icons.person_outline),
@@ -79,7 +77,9 @@ class LoginView extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      onChanged: (value) => controller.username.value = value,
+                      onChanged: (value) {
+                        controller.username.value = value.trim();
+                      },
                     ),
 
                     const SizedBox(height: 16),
@@ -88,6 +88,7 @@ class LoginView extends StatelessWidget {
                     Obx(
                       () => TextField(
                         obscureText: _obscurePassword.value,
+                        textInputAction: TextInputAction.done,
                         decoration: InputDecoration(
                           labelText: 'Password',
                           prefixIcon: const Icon(Icons.lock_outline),
@@ -105,7 +106,10 @@ class LoginView extends StatelessWidget {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        onChanged: (value) => controller.password.value = value,
+                        onChanged: (value) {
+                          controller.password.value = value.trim();
+                        },
+                        onSubmitted: (_) => controller.login(),
                       ),
                     ),
 
@@ -116,6 +120,8 @@ class LoginView extends StatelessWidget {
                       height: 48,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
+                          backgroundColor: theme.colorScheme.primary,
+                          foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),

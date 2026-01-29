@@ -1,11 +1,8 @@
-############################
 # Miscellaneous
-############################
 *.class
 *.log
 *.pyc
 *.swp
-*.swo
 .DS_Store
 .atom/
 .build/
@@ -15,84 +12,30 @@
 .swiftpm/
 migrate_working_dir/
 
-############################
-# IntelliJ / Android Studio
-############################
+# IntelliJ related
 *.iml
 *.ipr
 *.iws
 .idea/
 
-############################
 # VS Code
-############################
-.vscode/
+#.vscode/
 
-############################
-# Flutter / Dart / Pub
-############################
+# Flutter/Dart
 .dart_tool/
 .flutter-plugins
 .flutter-plugins-dependencies
+.packages
 .pub-cache/
 .pub/
-build/
-coverage/
+/build/
+/coverage/
 
-############################
-# Flutter generated files
-############################
-**/doc/api/
-**/ios/Flutter/.last_build_id
-**/flutter_export_environment.sh
-**/Flutter-Generated.xcconfig
-
-############################
-# macOS (Flutter specific)
-############################
-macos/Flutter/GeneratedPluginRegistrant.swift
-macos/Flutter/ephemeral/
-macos/Flutter/Flutter-Generated.xcconfig
-macos/Flutter/flutter_export_environment.sh
-
-############################
-# iOS
-############################
-ios/Flutter/Generated.xcconfig
-ios/Flutter/flutter_export_environment.sh
-ios/Flutter/.last_build_id
-ios/Runner/GeneratedPluginRegistrant.*
-
-############################
 # Android
-############################
-android/.gradle/
-android/local.properties
-android/key.properties
-android/app/debug
-android/app/profile
-android/app/release
+/android/app/debug
+/android/app/profile
+/android/app/release
 
-############################
-# Web
-############################
-web/.dart_tool/
-web/build/
-
-############################
-# Windows
-############################
-windows/flutter/ephemeral/
-windows/build/
-
-############################
-# Linux
-############################
-linux/flutter/ephemeral/
-linux/build/
-
-############################
-# Symbolication / Obfuscation
-############################
-app.*.symbols
-app.*.map.json
+# iOS / macOS
+ios/Flutter/.last_build_id
+macos/Flutter/GeneratedPluginRegistrant.swift

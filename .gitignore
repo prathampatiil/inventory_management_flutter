@@ -19,7 +19,8 @@ migrate_working_dir/
 .idea/
 
 # VS Code
-#.vscode/
+
+.vscode/
 
 # Flutter/Dart
 .dart_tool/

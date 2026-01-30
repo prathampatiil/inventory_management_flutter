@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import 'bindings/initial_binding.dart';
+import 'controllers/theme_controller.dart';
 import 'middlewares/auth_middleware.dart';
 import 'routes/app_routes.dart';
 import 'services/storage_service.dart';
@@ -22,8 +23,7 @@ import 'views/product/edit_product_view.dart';
 import 'views/sales/sales_view.dart';
 import 'views/settings/settings_view.dart';
 
-// ================= THEME =================
-import 'controllers/theme_controller.dart';
+import 'views/splash/splash_view.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,20 +31,15 @@ void main() async {
   // ✅ Init SharedPreferences ONCE
   await StorageService.init();
 
-  final storage = StorageService();
-  final bool isLoggedIn = await storage.isLoggedIn();
-
-  runApp(InventoryApp(isLoggedIn: isLoggedIn));
+  runApp(const InventoryApp());
 }
 
 class InventoryApp extends StatelessWidget {
-  final bool isLoggedIn;
-
-  const InventoryApp({super.key, required this.isLoggedIn});
+  const InventoryApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // ✅ Create ThemeController once
+    // ✅ ThemeController must exist BEFORE GetMaterialApp
     final ThemeController themeController = Get.put(ThemeController());
 
     return Obx(
@@ -52,11 +47,10 @@ class InventoryApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         title: 'Inventory Management',
 
-        // ✅ Centralized bindings
+        // ✅ Centralized controller bindings
         initialBinding: InitialBinding(),
 
         // ================= THEME =================
-        // 🔥 IMPORTANT FIX
         themeMode: themeController.flutterThemeMode,
 
         theme: ThemeData(
@@ -74,11 +68,12 @@ class InventoryApp extends StatelessWidget {
           brightness: Brightness.dark,
         ),
 
-        // ================= AUTH BOOTSTRAP =================
-        initialRoute: isLoggedIn ? AppRoutes.home : AppRoutes.login,
-
         // ================= ROUTES =================
+        initialRoute: AppRoutes.splash, // middleware decides final route
+
         getPages: [
+          GetPage(name: AppRoutes.splash, page: () => SplashView()),
+
           // ---------- AUTH ----------
           GetPage(
             name: AppRoutes.login,

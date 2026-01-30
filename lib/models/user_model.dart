@@ -4,6 +4,13 @@ class UserModel {
 
   UserModel({required this.username, required this.password});
 
+  UserModel copyWith({String? username, String? password}) {
+    return UserModel(
+      username: username ?? this.username,
+      password: password ?? this.password,
+    );
+  }
+
   Map<String, dynamic> toJson() {
     return {'username': username, 'password': password};
   }

@@ -11,6 +11,24 @@ class AuthController extends GetxController {
   final RxString username = ''.obs;
   final RxString password = ''.obs;
 
+  UserModel? _currentUser;
+
+  // ================= LIFECYCLE =================
+  @override
+  void onInit() {
+    super.onInit();
+    _loadUser(); // ✅ load persisted user on app start
+  }
+
+  Future<void> _loadUser() async {
+    final Map<String, dynamic>? data = await _storage.loadUser();
+    if (data != null) {
+      _currentUser = UserModel.fromJson(data);
+      username.value = _currentUser!.username;
+      password.value = _currentUser!.password;
+    }
+  }
+
   // ================= REGISTER =================
   Future<void> register() async {
     final String u = username.value.trim();
@@ -27,15 +45,14 @@ class AuthController extends GetxController {
 
     final UserModel user = UserModel(username: u, password: p);
 
-    // ✅ Save user ONLY
     await _storage.saveUser(user.toJson());
 
-    // ❌ DO NOT mark logged in
+    // ❌ Do NOT auto-login after register
     await _storage.setLogin(false);
 
+    _currentUser = user;
     _clearFields();
 
-    // ✅ Redirect to LOGIN (real app behavior)
     Get.offAllNamed(AppRoutes.login);
 
     Get.snackbar(
@@ -59,9 +76,8 @@ class AuthController extends GetxController {
       return;
     }
 
-    final Map<String, dynamic>? savedUser = await _storage.loadUser();
-
-    if (savedUser == null) {
+    final Map<String, dynamic>? saved = await _storage.loadUser();
+    if (saved == null) {
       Get.snackbar(
         'Error',
         'No user found. Please register first.',
@@ -70,13 +86,14 @@ class AuthController extends GetxController {
       return;
     }
 
-    final UserModel user = UserModel.fromJson(savedUser);
+    final UserModel user = UserModel.fromJson(saved);
 
     if (user.username == u && user.password == p) {
-      // ✅ Login success
       await _storage.setLogin(true);
 
-      _clearFields();
+      _currentUser = user;
+      username.value = user.username;
+      password.value = user.password;
 
       Get.offAllNamed(AppRoutes.home);
     } else {
@@ -88,12 +105,34 @@ class AuthController extends GetxController {
     }
   }
 
+  // ================= UPDATE USERNAME =================
+  Future<void> updateUsername(String newName) async {
+    final String trimmed = newName.trim();
+    if (trimmed.isEmpty) return;
+
+    final Map<String, dynamic>? data = await _storage.loadUser();
+    if (data == null) return;
+
+    final UserModel existingUser = UserModel.fromJson(data);
+
+    final UserModel updatedUser = existingUser.copyWith(username: trimmed);
+
+    await _storage.saveUser(updatedUser.toJson());
+
+    _currentUser = updatedUser;
+    username.value = trimmed;
+
+    Get.snackbar(
+      'Success',
+      'Username updated',
+      snackPosition: SnackPosition.BOTTOM,
+    );
+  }
+
   // ================= LOGOUT =================
   Future<void> logout() async {
     await _storage.setLogin(false);
-
     _clearFields();
-
     Get.offAllNamed(AppRoutes.login);
   }
 

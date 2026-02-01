@@ -5,10 +5,12 @@ import '../models/sale_model.dart';
 import '../models/product_model.dart';
 import '../services/storage_service.dart';
 import 'product_controller.dart';
+import 'auth_controller.dart';
 
 class SalesController extends GetxController {
   final StorageService _storage = StorageService();
-  final ProductController productController = Get.find<ProductController>();
+  final ProductController _productController = Get.find<ProductController>();
+  final AuthController _authController = Get.find<AuthController>();
 
   // ================= STATE =================
   final RxList<SaleModel> sales = <SaleModel>[].obs;
@@ -25,13 +27,21 @@ class SalesController extends GetxController {
   }
 
   // ================= LOAD / SAVE =================
+
   Future<void> loadSales() async {
-    final data = await _storage.loadSales();
+    final String username = _authController.username.value;
+    if (username.isEmpty) return;
+
+    final data = await _storage.loadSales(username);
+
     sales.assignAll(data.map((e) => SaleModel.fromJson(e)).toList());
   }
 
   Future<void> _save() async {
-    await _storage.saveSales(sales.map((e) => e.toJson()).toList());
+    final String username = _authController.username.value;
+    if (username.isEmpty) return;
+
+    await _storage.saveSales(username, sales.map((e) => e.toJson()).toList());
   }
 
   // ================= ADD SALE =================
@@ -48,10 +58,9 @@ class SalesController extends GetxController {
       return;
     }
 
-    // Refresh product (important if list updated)
-    final currentProduct = productController.products.firstWhereOrNull(
-      (p) => p.id == product.id,
-    );
+    // 🔄 Always refresh product from controller
+    final ProductModel? currentProduct = _productController.products
+        .firstWhereOrNull((p) => p.id == product.id);
 
     if (currentProduct == null) {
       Get.snackbar('Error', 'Product no longer exists');
@@ -63,8 +72,8 @@ class SalesController extends GetxController {
       return;
     }
 
-    // 🔻 Reduce stock
-    productController.reduceStock(
+    // 🔻 Reduce stock (user-scoped product)
+    _productController.reduceStock(
       productId: currentProduct.id,
       quantity: quantity.value,
     );
@@ -90,8 +99,8 @@ class SalesController extends GetxController {
 
   // ================= DELETE SALE =================
   void deleteSale(SaleModel sale) {
-    // Restore stock safely
-    productController.restoreStock(
+    // 🔁 Restore stock correctly
+    _productController.restoreStock(
       productId: sale.productId,
       quantity: sale.quantity,
     );
@@ -102,6 +111,7 @@ class SalesController extends GetxController {
 
   // ================= HELPERS =================
   String _generateId() {
-    return '${DateTime.now().millisecondsSinceEpoch}${Random().nextInt(999)}';
+    return '${DateTime.now().millisecondsSinceEpoch}'
+        '${Random().nextInt(999)}';
   }
 }

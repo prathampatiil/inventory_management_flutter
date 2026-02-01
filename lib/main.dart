@@ -39,7 +39,7 @@ class InventoryApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // ✅ ThemeController must exist BEFORE GetMaterialApp
+    // ThemeController must exist BEFORE GetMaterialApp
     final ThemeController themeController = Get.put(ThemeController());
 
     return Obx(
@@ -47,10 +47,9 @@ class InventoryApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         title: 'Inventory Management',
 
-        // ✅ Centralized controller bindings
         initialBinding: InitialBinding(),
 
-        // ================= THEME =================
+        //  THEME
         themeMode: themeController.flutterThemeMode,
 
         theme: ThemeData(
@@ -68,7 +67,7 @@ class InventoryApp extends StatelessWidget {
           brightness: Brightness.dark,
         ),
 
-        // ================= ROUTES =================
+        // ROUTES
         initialRoute: AppRoutes.splash, // middleware decides final route
 
         getPages: [

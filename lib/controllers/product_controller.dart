@@ -3,9 +3,11 @@ import 'package:get/get.dart';
 
 import '../models/product_model.dart';
 import '../services/storage_service.dart';
+import 'auth_controller.dart';
 
 class ProductController extends GetxController {
   final StorageService _storage = StorageService();
+  final AuthController _auth = Get.find<AuthController>();
 
   // ================= STATE =================
   final RxList<ProductModel> products = <ProductModel>[].obs;
@@ -26,13 +28,23 @@ class ProductController extends GetxController {
   }
 
   // ================= LOAD / SAVE =================
+
   Future<void> loadProducts() async {
-    final data = await _storage.loadProducts();
+    final String username = _auth.username.value;
+    if (username.isEmpty) return;
+
+    final data = await _storage.loadProducts(username);
     products.assignAll(data.map((e) => ProductModel.fromJson(e)).toList());
   }
 
   Future<void> _save() async {
-    await _storage.saveProducts(products.map((e) => e.toJson()).toList());
+    final String username = _auth.username.value;
+    if (username.isEmpty) return;
+
+    await _storage.saveProducts(
+      username,
+      products.map((e) => e.toJson()).toList(),
+    );
   }
 
   // ================= ADD PRODUCT =================
@@ -92,7 +104,7 @@ class ProductController extends GetxController {
     _save();
   }
 
-  // ================= STOCK MANAGEMENT (SALES) =================
+  // ================= STOCK MANAGEMENT =================
 
   /// Reduce stock when a sale is created
   void reduceStock({required String productId, required int quantity}) {
@@ -101,7 +113,6 @@ class ProductController extends GetxController {
 
     final product = products[index];
 
-    // SAFETY CHECK
     if (quantity <= 0 || quantity > product.stock) return;
 
     products[index] = product.copyWith(stock: product.stock - quantity);
@@ -154,6 +165,7 @@ class ProductController extends GetxController {
   }
 
   String _generateId() {
-    return '${DateTime.now().millisecondsSinceEpoch}${Random().nextInt(999)}';
+    return '${DateTime.now().millisecondsSinceEpoch}'
+        '${Random().nextInt(999)}';
   }
 }

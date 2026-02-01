@@ -12,47 +12,40 @@ class SplashView extends StatefulWidget {
   State<SplashView> createState() => _SplashViewState();
 }
 
-class _SplashViewState extends State<SplashView>
-    with SingleTickerProviderStateMixin {
+class _SplashViewState extends State<SplashView> {
   final StorageService _storage = StorageService();
 
-  late final AnimationController _uiController;
-  late final Animation<double> _fade;
-  late final Animation<double> _scale;
+  LottieComposition? _composition;
+  bool _visible = false;
 
   @override
   void initState() {
     super.initState();
+    _loadLottie();
+  }
 
-    // UI fade + scale animation (NOT for lottie)
-    _uiController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1400),
-    );
+  /// 🔹 Preload Lottie (CRITICAL FIX)
+  Future<void> _loadLottie() async {
+    final composition = await AssetLottie('assets/lottie/splash.json').load();
 
-    _fade = CurvedAnimation(parent: _uiController, curve: Curves.easeIn);
+    if (!mounted) return;
 
-    _scale = Tween<double>(begin: 0.9, end: 1.0).animate(
-      CurvedAnimation(parent: _uiController, curve: Curves.easeOutBack),
-    );
+    setState(() {
+      _composition = composition;
+      _visible = true;
+    });
 
-    _uiController.forward();
     _bootstrap();
   }
 
   Future<void> _bootstrap() async {
-    await Future.delayed(const Duration(seconds: 2));
+    // Let animation play smoothly
+    await Future.delayed(const Duration(milliseconds: 2200));
 
     final bool isLoggedIn = await _storage.isLoggedIn();
     if (!mounted) return;
 
     Get.offAllNamed(isLoggedIn ? AppRoutes.home : AppRoutes.login);
-  }
-
-  @override
-  void dispose() {
-    _uiController.dispose();
-    super.dispose();
   }
 
   @override
@@ -64,25 +57,29 @@ class _SplashViewState extends State<SplashView>
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Colors.deepPurple, Colors.purpleAccent],
+            colors: [
+              Color(0xFF673AB7), // Deep Purple
+              Color(0xFF9C27B0), // Purple
+            ],
           ),
         ),
-        child: FadeTransition(
-          opacity: _fade,
-          child: ScaleTransition(
-            scale: _scale,
+        child: Center(
+          child: AnimatedOpacity(
+            opacity: _visible ? 1 : 0,
+            duration: const Duration(milliseconds: 500),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                SizedBox(
-                  height: 250,
-                  child: Lottie.asset(
-                    'assets/lottie/splash.json',
-                    fit: BoxFit.contain,
-                    repeat: true,
-                    animate: true,
+                // ================= LOTTIE =================
+                if (_composition != null)
+                  SizedBox(
+                    height: 220,
+                    child: Lottie(
+                      composition: _composition!,
+                      repeat: true,
+                      frameRate: FrameRate.max,
+                    ),
                   ),
-                ),
 
                 const SizedBox(height: 24),
 
@@ -91,16 +88,20 @@ class _SplashViewState extends State<SplashView>
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1.1,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1.2,
                   ),
                 ),
 
-                const SizedBox(height: 16),
+                const SizedBox(height: 18),
 
-                const CircularProgressIndicator(
-                  color: Colors.white,
-                  strokeWidth: 2.5,
+                const SizedBox(
+                  height: 22,
+                  width: 22,
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 2.4,
+                  ),
                 ),
               ],
             ),
